@@ -5,16 +5,30 @@ const router = express.Router();
 const Users = require('../users/userDb.js');
 const Posts = require('../posts/postDb.js')
 
-router.post('/', (req, res) => {
-  // do your magic!
+router.post('/', validateUser, (req, res) => {
+  Users.insert(req.body)
+  .then(user => {
+    res.status(201).json(user)
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({ message: 'exception', err })
+  })
 });
 
-router.post('/:id/posts', (req, res) => {
+router.post('/:id/posts', validateUserId, (req, res) => {
   // do your magic!
 });
 
 router.get('/', (req, res) => {
-  // do your magic!
+  Users.get()
+  .then(users => {
+    res.status(200).json(users)
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({ message: 'exception', err })
+  })
 });
 
 router.get('/:id', validateUserId, (req, res) => {
@@ -41,8 +55,18 @@ router.delete('/:id', validateUserId, (req, res) => {
   })
 });
 
-router.put('/:id', validateUserId, (req, res) => {
-  // do your magic!
+router.put('/:id', validateUserId, validateUser, (req, res) => {
+  const {id} = req.params
+
+  Users.update(id, req.body)
+  .then(() => {
+    Users.getById(id)
+    .then(user => res.status(200).json(user))
+  })
+  .catch(err => {
+    console.log(err);
+    res.status(500).json({ message: 'exception', err })
+  })
 });
 
 //custom middleware
@@ -66,7 +90,13 @@ function validateUserId(req, res, next) {
 }
 
 function validateUser(req, res, next) {
-  // do your magic!
+  if (Object.entries(req.body).length === 0) {
+    res.status(400).json({ message: "missing user data" })
+  } else if (!req.body.name) {
+    res.status(400).json({ message: "missing required name field" })
+  } else {
+    next();
+  }
 }
 
 function validatePost(req, res, next) {
