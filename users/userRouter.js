@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 const Users = require('../users/userDb.js');
-const Posts = require('../posts/postDb.js')
+const Posts = require('../posts/postDb.js');
 
 router.post('/', validateUser, (req, res) => {
   Users.insert(req.body)
